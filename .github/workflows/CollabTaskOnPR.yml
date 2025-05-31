@@ -8,6 +8,9 @@ jobs:
   skyline-auth:
     runs-on: ubuntu-latest
     steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Get Skyline access token
         id: get_token
         run: |
@@ -16,47 +19,41 @@ jobs:
             -d "username=${{ secrets.SKYLINE_USERNAME }}" \
             -d "password=${{ secrets.SKYLINE_PASSWORD }}" \
             -d "grant_type=password")
-
           echo "API response: $response"
-
           token=$(echo "$response" | jq -r '.access_token')
           if [ "$token" == "null" ] || [ -z "$token" ]; then
             echo "Failed to retrieve access token"
             exit 1
           fi
+          echo "token=$token" >> $GITHUB_OUTPUT
 
-          echo "access_token=$token" >> $GITHUB_OUTPUT
-
-      - name: Use Skyline token in API request
-        runs-on: ubuntu-latest
-        steps:
-        - name: Extract PR Data and POST
-          uses: actions/github-script@v7
-          with:
+      - name: Post PR Details
+        uses: actions/github-script@v7
+        env:
+          SKYLINE_TOKEN: ${{ steps.get_token.outputs.token }}
+        with:
           script: |
             const pr = context.payload.pull_request;
-
             const title = `[PR#${pr.number}] ${pr.title}`;
             const fullTitle = title;
             const author = pr.user.login;
             const commitMessage = pr.body || "No PR body provided.";
             const prUrl = pr.html_url;
 
-            // Fetch files changed in the PR
+            // Get files changed
             const files = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: pr.number
             });
-
             const changedFiles = files.data.map(f => `- \`${f.filename}\``).join('\n');
 
             const description = `### Pull Request Details
-                - **Author**: ${author}
-                - **Commit Message**: ${commitMessage}
-                - **Files Changed**:
-                ${changedFiles}
-                - **PR URL**: ${prUrl}`;
+- **Author**: ${author}
+- **Commit Message**: ${commitMessage}
+- **Files Changed**:
+${changedFiles}
+- **PR URL**: ${prUrl}`;
 
             const payload = {
               Title: title,
@@ -76,7 +73,7 @@ jobs:
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer $token"
+                "Authorization": `Bearer ${process.env.SKYLINE_TOKEN}`
               },
               body: JSON.stringify(payload)
             });
