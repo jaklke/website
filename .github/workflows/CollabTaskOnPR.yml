@@ -49,11 +49,11 @@ jobs:
             const changedFiles = files.data.map(f => `- \`${f.filename}\``).join('\n');
 
             const description = `### Pull Request Details
-- **Author**: ${author}
-- **Commit Message**: ${commitMessage}
-- **Files Changed**:
-${changedFiles}
-- **PR URL**: ${prUrl}`;
+              - **Author**: ${author}
+              - **Commit Message**: ${commitMessage}
+              - **Files Changed**:
+                ${changedFiles}
+              - **PR URL**: ${prUrl}`;
 
             const payload = {
               Title: title,
