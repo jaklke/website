@@ -55,16 +55,17 @@ jobs:
                   ${changedFiles}
               - **PR URL**: ${prUrl}`;
 
-            const description2 = '\u003ch3\u003ePull Request Details\u003c/h3\u003e 
-             \u003cul\u003 \u003cli\u003e\u003cstrong\u003eAuthor:\u003c/strong\u003e ${author}\u003c/li\u003e
-              \u003cli\u003e\u003cstrong\u003eCommit Message:\u003c/strong\u003e ${commitMessage}\u003c/li\u003e
-              \u003cli\u003e\u003cstrong\u003eFiles Changed:\u003c/strong\u003e
-              \u003cul\u003e
-              ${changedFiles.split('\n').map(file => `\u003cli\u003e${file.replace(/^- /, '')}\u003c/li\u003e`).join('')}
-              \u003c/ul\u003e
-              \u003c/li\u003e
-              \u003cli\u003e\u003cstrong\u003ePR URL:\u003c/strong\u003e \u003ca href=\"${prUrl}\"\u003e${prUrl}\u003c/a\u003e\u003c/li\u003e
-              \u003c/ul\u003e';
+            const description2 = `<h3>Pull Request Details</h3>
+              <ul> 
+              <li><strong>Author:</strong> ${author}</li>
+              <li><strong>Commit Message:</strong> ${commitMessage}</li>
+              <li><strong>Files Changed:</strong>
+              <ul>
+              ${changedFiles.split('\n').map(file => `<li>${file.replace(/^- /, '')}</li>`).join('')}
+              </ul>
+              </li>
+              <li><strong>PR URL:</strong> <a href="${prUrl}">${prUrl}</a></li>
+              </ul>`;
 
             const payload = {
               Title: title,
