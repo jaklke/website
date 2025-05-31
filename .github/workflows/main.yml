@@ -1,0 +1,21 @@
+name: PR Created Trigger
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  pr-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Add comment to PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ✅ This workflow was triggered by a PR creation event.
+            Timestamp: `${{ github.event.head_commit.timestamp || github.event.pull_request.created_at }}`
