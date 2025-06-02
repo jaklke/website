@@ -55,17 +55,28 @@ jobs:
                   ${changedFiles}
               - **PR URL**: ${prUrl}`;
 
-            const description2 = `<h3>Pull Request Details</h3>
-              <ul> 
-              <li><strong>Author:</strong> ${author}</li>
-              <li><strong>Commit Message:</strong> ${commitMessage}</li>
-              <li><strong>Files Changed:</strong>
+            const description2 = `<p><font size="4"><b>COMPONENT</b></font></p>
+              <p>DIS</p>
+              <p><br></p>
+              <p><font size="4"><b>DESCRIPTION</b></font></p>
+              <p>This task is automatically generated from a DIS Pull Request</p>
+              <p><br></p>
+              <p><strong>PR URL:</strong> <a href="${prUrl}">${prUrl}</a></p>
+              <p><br></p>
+              <p><strong>Author:</strong> ${author}</p>
+              <p><br></p>
+              <p><strong>Commit Message:</strong></p>
+              <p>${commitMessage}</p>
+              <p><br></p>
+              <p><strong>Files Changed:</strong></p>
               <ul>
               ${changedFiles.split('\n').map(file => `<li>${file.replace(/^- /, '')}</li>`).join('')}
               </ul>
-              </li>
-              <li><strong>PR URL:</strong> <a href="${prUrl}">${prUrl}</a></li>
-              </ul>`;
+              <p><br></p>
+               <p><font size="4"><b>ACCEPTANCE CRITERIA</b></font></p>
+               <ol>
+               <li>Perform code review</li>
+               </ol>`;
 
             const payload = {
               Title: title,
