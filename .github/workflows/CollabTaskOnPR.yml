@@ -5,14 +5,25 @@ on:
     types: [opened]
 
 jobs:
-  skyline-auth:
+  create-skyline-task:
     runs-on: ubuntu-latest
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
+      - name: Check for existing task link
+        id: check_task_link
+        run: |
+          body="${{ github.event.pull_request.body }}"
+          if echo "$body" | grep -Eq 'https://collaboration\.dataminer\.services/task/[0-9]+'; then
+            echo "task_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "task_exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get Skyline access token
         id: get_token
+        if: steps.check_task_link.outputs.task_exists == 'false'
         run: |
           response=$(curl -s -X POST https://api.skyline.be/Token \
             -H "Content-Type: application/x-www-form-urlencoded" \
@@ -27,7 +38,8 @@ jobs:
           fi
           echo "token=$token" >> $GITHUB_OUTPUT
 
-      - name: Post PR Details
+      - name: Post PR Details to Skyline
+        if: steps.check_task_link.outputs.task_exists == 'false'
         uses: actions/github-script@v7
         env:
           SKYLINE_TOKEN: ${{ steps.get_token.outputs.token }}
@@ -40,7 +52,6 @@ jobs:
             const commitMessage = pr.body || "No PR body provided.";
             const prUrl = pr.html_url;
 
-            // Get files changed
             const files = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -48,14 +59,7 @@ jobs:
             });
             const changedFiles = files.data.map(f => `- \`${f.filename}\``).join('\n');
 
-            const description = `### Pull Request Details
-              - **Author**: ${author}
-              - **Commit Message**: ${commitMessage}
-              - **Files Changed**:
-                  ${changedFiles}
-              - **PR URL**: ${prUrl}`;
-
-            const description2 = `<p><font size="4"><b>COMPONENT</b></font></p>
+            const description = `<p><font size="4"><b>COMPONENT</b></font></p>
               <p>DIS</p>
               <p><br></p>
               <p><font size="4"><b>DESCRIPTION</b></font></p>
@@ -73,10 +77,10 @@ jobs:
               ${changedFiles.split('\n').map(file => `<li>${file.replace(/^- /, '')}</li>`).join('')}
               </ul>
               <p><br></p>
-               <p><font size="4"><b>ACCEPTANCE CRITERIA</b></font></p>
-               <ol>
-               <li>Perform code review</li>
-               </ol>`;
+              <p><font size="4"><b>ACCEPTANCE CRITERIA</b></font></p>
+              <ol>
+                <li>Perform code review</li>
+              </ol>`;
 
             const payload = {
               Title: title,
@@ -86,10 +90,10 @@ jobs:
               Project: { ID: "16457" },
               Status: "Code Review",
               Assignee: { ID: "5121" },
-              Description: description2,
+              Description: description,
               FullTitle: fullTitle,
               Labels: [{ ID: "7095" }],
-              Creator: { ID: "5121" },             
+              Creator: { ID: "5121" }
             };
 
             const response = await fetch("https://api.skyline.be/api/dcp/Tasks", {
